@@ -1,6 +1,6 @@
 #!/bin/zsh
 set -e
-ROOTS=(/Library/WebServer/Documents/nutopia ~/NUTOPIA_Site /Volumes/NUTOPIA)
+ROOTS=(/Library/WebServer/Documents/nutopia ~/QUIN/AIA/NUTOPIA /Volumes/NUTOPIA)
 OUT=tree.json
 tmp=$(mktemp)
 printf '[' > $tmp
