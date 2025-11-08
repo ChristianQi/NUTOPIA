@@ -10,35 +10,33 @@
 <div class="header"><a href="#" id="back">NUTOPIA · ART</a></div>
 <canvas id="stage"></canvas>
 <div class="caption">Citizen Park — Schwarze Kirsche. Der Wind weht, die Blüten blühen und fallen.</div>
-<div class="ui">
+<div class="ui" id="ui">
   <span>Wind</span><input id="wind" type="range" min="-2" max="2" step="0.01" value="0.6">
   <span>Blüten</span><input id="rate" type="range" min="0" max="1" step="0.01" value="0.6">
   <button id="snap">Bild exportieren</button>
+  <button id="idle">Ausstellung</button>
 </div>
 <script>
 const C=document.getElementById('stage');const d=C.getContext('2d');
 let W=innerWidth,H=innerHeight;C.width=W;C.height=H;
 addEventListener('resize',()=>{W=innerWidth;H=innerHeight;C.width=W;C.height=H;});
-// Palette: Schwarzweiß mit hauchzartem Rosa
 const PAL={bg:'#0b1220', ground:'#0e1526', tree:'#0b0b0e', branch:'#111217', mist:'rgba(255,255,255,0.04)', petal:'#ffffff', petalPink:'rgba(255,182,193,0.10)', shadow:'#00000055'};
-// Parkboden
 function ground(){
   const g=d.createLinearGradient(0,0,0,H);
   g.addColorStop(0,PAL.bg); g.addColorStop(1,PAL.ground);
   d.fillStyle=g; d.fillRect(0,0,W,H);
-  // Nebelschleier
-  d.fillStyle=PAL.mist; for(let i=0;i<5;i++){d.fillRect(0,H*0.55+i*8,W,2)}
+  d.fillStyle=PAL.mist; for(let i=0;i<6;i++){d.fillRect(0,H*0.6+i*8,W,2)}
+  d.save(); d.translate(0,H*0.82); d.strokeStyle='rgba(255,255,255,0.04)'; d.lineWidth=1;
+  for(let x=0;x<W;x+=48){d.beginPath(); d.moveTo(x,0); d.lineTo(x+24,10); d.stroke()}
+  d.restore();
 }
-// Baumgeometrie: Silhouette + rekursive Äste
 function drawTree(){
   d.save(); d.translate(W*0.32,H*0.78);
-  // Stamm
   d.fillStyle=PAL.tree; d.strokeStyle=PAL.branch; d.lineWidth=2;
   d.beginPath(); d.moveTo(-18,0);
   d.bezierCurveTo(-40,-200,-30,-360,10,-520);
   d.bezierCurveTo(40,-360,30,-200,14,0);
   d.closePath(); d.fill(); d.stroke();
-  // Äste (rekursiv, zufällig aber deterministisch via seed)
   const rnd=(s)=>{let x=Math.sin(s)*10000; return x-Math.floor(x);}
   function branch(x,y,len,ang,w,seed){
     if(len<24) return;
@@ -56,19 +54,22 @@ function drawTree(){
   branch(12,-360,160,0.7,3,4);
   d.restore();
 }
-// Blütenblätter Partikelsystem
 const windCtl=document.getElementById('wind');
 const rateCtl=document.getElementById('rate');
 let petals=[], settled=[];
+let gustT=0, idle=false, idleT=0;
 function spawnPetal(){
   const x=W*0.2+Math.random()*W*0.6;
   const y=H*0.1+Math.random()*H*0.4;
   const r=2+Math.random()*3;
-  const hueChoice=Math.random()<0.1? 'pink':'white';
+  const hueChoice=Math.random()<0.08? 'pink':'white';
   petals.push({x,y,vx:(Math.random()*0.2),vy:0.4+Math.random()*0.6,rot:Math.random()*Math.PI,rr:(-0.03+Math.random()*0.06),r,kind:hueChoice});
 }
 function stepPetals(dt){
-  const wind=parseFloat(windCtl.value);
+  let wind=parseFloat(windCtl.value);
+  gustT+=dt;
+  if(idle){ idleT+=dt; wind=0.6+Math.sin(idleT*0.25)*0.4; rateCtl.value=(0.5+0.4*Math.sin(idleT*0.18)).toFixed(2); }
+  if(gustT>12){ gustT=0; const sign=Math.random()<0.5?-1:1; for(let i=0;i<petals.length;i++){petals[i].vx+=sign*(0.8+Math.random()*0.6);} }
   for(let i=petals.length-1;i>=0;i--){
     const p=petals[i];
     p.vx+=0.0005*wind;
@@ -82,9 +83,9 @@ function stepPetals(dt){
     }
     if(p.x<-20||p.x>W+20||p.y>H+20){petals.splice(i,1);}
   }
-  const target=200*parseFloat(rateCtl.value);
+  const target=220*parseFloat(rateCtl.value);
   if(petals.length<target){for(let k=0;k<3;k++) spawnPetal();}
-  while(settled.length>800) settled.shift();
+  while(settled.length>900) settled.shift();
 }
 function drawPetal(x,y,r,rot,kind,alpha=1){
   d.save(); d.translate(x,y); d.rotate(rot);
@@ -92,31 +93,55 @@ function drawPetal(x,y,r,rot,kind,alpha=1){
   d.quadraticCurveTo(r,0,0,r);
   d.quadraticCurveTo(-r,0,0,-r);
   d.closePath();
-  d.fillStyle = kind==='pink' ? PAL.petalPink : 'rgba(255,255,255,0.85)';
+  d.fillStyle = kind==='pink' ? 'rgba(255,182,193,0.10)' : 'rgba(255,255,255,0.85)';
   d.strokeStyle='rgba(255,255,255,0.25)';
   d.lineWidth=0.6;
   d.globalAlpha=alpha;
   d.fill(); d.stroke(); d.globalAlpha=1;
   d.restore();
 }
+function oneApple(){
+  d.save();
+  d.translate(W*0.62,H*0.78);
+  d.scale(1,1);
+  d.rotate(-0.03);
+  d.fillStyle='rgba(255,255,255,0.85)';
+  d.beginPath();
+  d.moveTo(0,-8);
+  d.bezierCurveTo(16,-24,30,-8,18,6);
+  d.bezierCurveTo(8,18,-8,18,-18,6);
+  d.bezierCurveTo(-30,-8,-16,-24,0,-8);
+  d.fill();
+  d.fillStyle='rgba(255,255,255,0.4)';
+  d.fillRect(-1,-28,2,16);
+  d.rotate(0.5);
+  d.beginPath();
+  d.moveTo(0,-22);
+  d.quadraticCurveTo(18,-30,28,-16);
+  d.quadraticCurveTo(8,-16,0,-22);
+  d.fill();
+  d.restore();
+}
 let last=performance.now();
 function frame(now){
   const dt=Math.min(0.033,(now-last)/1000); last=now;
-  ground(); drawTree();
+  ground(); drawTree(); oneApple();
   stepPetals(dt);
   for(const s of settled){ drawPetal(s.x,s.y,s.r,s.rot,s.kind,0.9); }
   for(const p of petals){ drawPetal(p.x,p.y,p.r,p.rot,p.kind,0.95); }
-  // zarter Boden-Schatten
-  d.fillStyle=PAL.shadow; d.fillRect(0,H*0.82,W,2);
+  d.fillStyle='#00000055'; d.fillRect(0,H*0.82,W,2);
   requestAnimationFrame(frame);
 }
-for(let i=0;i<120;i++) spawnPetal();
+for(let i=0;i<140;i++) spawnPetal();
 requestAnimationFrame(frame);
-// Export
 document.getElementById('snap').addEventListener('click',()=>{
-  const url=C.toDataURL('image/png'); const a=document.createElement('a'); a.href=url; a.download='nutopia_cherry_tree.png'; a.click();
+  const url=C.toDataURL('image/png'); const a=document.createElement('a'); a.href=url; a.download='nutopia_cherry_tree_v2.png'; a.click();
 });
 document.getElementById('back').addEventListener('click',(e)=>{e.preventDefault(); history.back();});
+document.getElementById('idle').addEventListener('click',()=>{
+  idle=!idle; document.getElementById('ui').classList.toggle('hidden',idle);
+  if(!idle){document.getElementById('ui').classList.remove('hidden');}
+});
 </script>
 </body>
 </html>

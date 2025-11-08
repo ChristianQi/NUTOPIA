@@ -8,3 +8,4 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font:16px/1.
 .ui{position:fixed;right:0;bottom:0;display:flex;gap:.5rem;align-items:center;padding:.6rem .7rem;z-index:11;background:rgba(11,18,32,.35);backdrop-filter:blur(6px);border-top-left-radius:12px;border-left:1px solid var(--ring);border-top:1px solid var(--ring);color:var(--muted);font-weight:700}
 .ui input[type=range]{width:160px}
 .caption{position:fixed;left:0;right:0;bottom:2.2rem;text-align:center;color:#e5e7eb;font-weight:700;letter-spacing:.08em;text-shadow:0 1px 0 #0008}
+.hidden{display:none}
