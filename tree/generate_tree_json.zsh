@@ -7,7 +7,7 @@ printf '[' > $tmp
 first=1
 for R in $ROOTS; do
   url=""
-  if [[ "$R" == "/Library/WebServer/Documents/nutopia" ]]; then url="http://localhost/nutopia/"; fi
+  if [[ "$R" == "/Library/WebServer/Documents/nutopia" ]]; then url="https://quin.local/nutopia/"; fi
   [[ $first -eq 0 ]] && printf ',' >> $tmp
   first=0
   printf '{"name":"%s","url":"%s","children":[' "${R//\"/\\\"}" "${url//\"/\\\"}" >> $tmp
