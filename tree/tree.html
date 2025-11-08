@@ -1,0 +1,55 @@
+
+<!doctype html><html lang="de"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NUTOPIA · Verzeichnisbaum</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head><body>
+<header class="site-header">
+  <img src="assets/logo.svg" class="logo" alt="NUTOPIA Logo">
+  <nav class="nav">
+    <a href="index.html">Home</a>
+    <a href="tree.html">Verzeichnisbaum</a>
+    <a href="about.html">About</a>
+  </nav>
+</header>
+<main class="panel">
+  <div class="controls">
+    <input id="q" type="search" placeholder="Suche nach Datei/Ordner…">
+    <span id="count" class="badge">0 Treffer</span>
+  </div>
+  <div id="mount" class="tree card"></div>
+</main>
+<footer>© 2025 Christian Heistermann · NUTOPIA</footer>
+<script>
+async function loadTree(){
+  const res = await fetch('tree.json'); 
+  const data = await res.json(); 
+  const mount = document.getElementById('mount');
+  const q = document.getElementById('q');
+  const count = document.getElementById('count');
+  function node(n){
+    const label = n.url ? `<a href="${n.url}" target="_blank">${n.name}</a>` : `<span>${n.name}</span>`;
+    if(!n.children || n.children.length===0){ return `<div>${label}</div>`; }
+    return `<details open><summary>${label}</summary><div style="padding-left:.8rem">${n.children.map(node).join('')}</div></details>`;
+  }
+  function render(filter){
+    let tot=0;
+    function filterNode(n){
+      const hit = !filter || n.name.toLowerCase().includes(filter);
+      const kids = (n.children||[]).map(filterNode).filter(Boolean);
+      const keep = hit || kids.length>0;
+      if(!keep) return null;
+      return {name:n.name, url:n.url, children:kids};
+    }
+    const filtered = data.map(filterNode).filter(Boolean);
+    function countLeaves(n){ if(!n.children||n.children.length===0){ tot++; } else { n.children.forEach(countLeaves); } }
+    filtered.forEach(countLeaves);
+    mount.innerHTML = filtered.map(node).join('');
+    count.textContent = tot + " Treffer";
+  }
+  q.addEventListener('input', e=> render(e.target.value.trim().toLowerCase()));
+  render('');
+}
+loadTree();
+</script>
+</body></html>
