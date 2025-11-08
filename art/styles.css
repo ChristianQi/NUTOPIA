@@ -1,0 +1,10 @@
+
+:root{--bg:#0b1220;--fg:#eef2ff;--muted:#9aa4b2;--ring:#1f2937}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.header{position:fixed;inset:0 auto auto 0;padding:.8rem 1rem;z-index:10;background:rgba(11,18,32,.35);backdrop-filter:blur(6px);border-bottom-right-radius:12px;border-right:1px solid var(--ring);border-bottom:1px solid var(--ring)}
+.header a{color:var(--fg);text-decoration:none;font-weight:800}
+#stage{position:fixed;inset:0;display:block;width:100%;height:100%}
+.ui{position:fixed;right:0;bottom:0;display:flex;gap:.5rem;align-items:center;padding:.6rem .7rem;z-index:11;background:rgba(11,18,32,.35);backdrop-filter:blur(6px);border-top-left-radius:12px;border-left:1px solid var(--ring);border-top:1px solid var(--ring);color:var(--muted);font-weight:700}
+.ui input[type=range]{width:160px}
+.caption{position:fixed;left:0;right:0;bottom:2.2rem;text-align:center;color:#e5e7eb;font-weight:700;letter-spacing:.08em;text-shadow:0 1px 0 #0008}
